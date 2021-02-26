@@ -44,6 +44,8 @@ jobs:
           api: 28
           tag: default
           abi: x86_64
+          cmdOptions: -partition-size 1024 -wipe-data -cache-size 600
+          verbose: true
       - name: Archive Espresso results
         uses: actions/upload-artifact@v2.1.4
         if: ${{ always() }}
