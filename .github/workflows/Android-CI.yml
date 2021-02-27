@@ -20,44 +20,57 @@ jobs:
           java-version: ${{ matrix.java_version }}
       - name: Install Android SDK
         uses: malinskiy/action-android/install-sdk@release/0.1.1
-      - name: Decrypt keystore
-        run: ./signing/decrypt.sh
-        env:
-          CRYPT_PASS: ${{ secrets.CRYPT_PASS }}
-      - name: Build project
-        run: ./gradlew clean assembleDebug -Ponly_x86_64
-        env:
-          VERSION: ${{ github.ref }}
-          KEYSTORE_PASS: ${{ secrets.KEYSTORE_PASS }}
-          ALIAS_NAME: ${{ secrets.ALIAS_NAME }}
-          ALIAS_PASS: ${{ secrets.ALIAS_PASS }}
+#      - name: Decrypt keystore
+#        run: ./signing/decrypt.sh
+#        env:
+#          CRYPT_PASS: ${{ secrets.CRYPT_PASS }}
+#      - name: Build project
+#        run: ./gradlew clean assembleDebug -Ponly_x86_64
+#        env:
+#          VERSION: ${{ github.ref }}
+#          KEYSTORE_PASS: ${{ secrets.KEYSTORE_PASS }}
+#          ALIAS_NAME: ${{ secrets.ALIAS_NAME }}
+#          ALIAS_PASS: ${{ secrets.ALIAS_PASS }}
+#      - name: cleanup keystore
+#        run: ./signing/cleanup.sh
       - name: Run tests
         run: ./gradlew test -Ponly_x86_64
-#      - name: Run instrumentation tests
-#        uses: malinskiy/action-android/emulator-run-cmd@release/0.0.7
-#        with:
-#          cmd: ./gradlew cAT  -Ponly_x86_64 --continue
-#          api: 28
-#          tag: default
-#          abi: arm64-v8a
-#      - name: Archive Espresso results
-#        uses: actions/upload-artifact@v2.1.4
-#        if: ${{ always() }}
-#        with:
-#          name: MediaPipe-Espresso-report
-#          path: applications/**/build/reports/androidTests/connected/
-#      - name: Save logcat output
-#        uses: actions/upload-artifact@master
-#        if: failure()
-#        with:
-#          name: MediaPipe-logcat
-#          path: artifacts/logcat.log
-#      - name: Archive screenshots
-#        uses: actions/upload-artifact@v2.1.4
-#        if: ${{ always() }}
-#        with:
-#          name: MediaPipe-Screenshots
-#          path: applications/screenshots/adb/
+      - name: Run instrumentation tests
+        uses: malinskiy/action-android/emulator-run-cmd@release/0.1.1
+        env:
+          VERSION: ${{ github.ref }}
+        with:
+          cmd: ./gradlew :app:cAT  -Ponly_x86_64 --continue
+          api: 28
+          tag: default
+          abi: x86_64
+          cmdOptions: -partition-size 1024 -wipe-data -cache-size 600
+          verbose: true
+      - name: Archive Espresso results
+        uses: actions/upload-artifact@v2.1.4
+        if: ${{ always() }}
+        with:
+          name: MediaPipe-Espresso-report
+          path: ./**/build/reports/androidTests/connected/
+      - name: Save logcat output
+        uses: actions/upload-artifact@master
+        if: ${{ always() }}
+        with:
+          name: MediaPipe-logcat
+          path: artifacts/logcat.log
+      - name: Archive screenshots
+        uses: actions/upload-artifact@v2.1.4
+        if: ${{ always() }}
+        with:
+          name: MediaPipe-Screenshots
+          path: screenshots/adb/
+      - name: Keep apk
+        uses: actions/upload-artifact@v2.1.4
+        if: ${{ always() }}
+        with:
+          name: MediaPipe-apk
+          path: ./**/build/outputs/apk/debug/*.apk
+          retention-days: 2
       - name: cleanup keystore
         run: ./signing/cleanup.sh
   Check:
@@ -87,4 +100,4 @@ jobs:
         if: ${{ always() }}
         with:
           name: MediaPipe-Lint-report
-          path: applications/**/build/reports/lint-results.html
+          path: ./**/build/reports/lint-results.html
