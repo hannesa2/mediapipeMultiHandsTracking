@@ -31,15 +31,14 @@ jobs:
           KEYSTORE_PASS: ${{ secrets.KEYSTORE_PASS }}
           ALIAS_NAME: ${{ secrets.ALIAS_NAME }}
           ALIAS_PASS: ${{ secrets.ALIAS_PASS }}
+      - name: cleanup keystore
+        run: ./signing/cleanup.sh
       - name: Run tests
         run: ./gradlew test -Ponly_x86_64
       - name: Run instrumentation tests
         uses: malinskiy/action-android/emulator-run-cmd@release/0.1.1
         env:
           VERSION: ${{ github.ref }}
-          KEYSTORE_PASS: ${{ secrets.KEYSTORE_PASS }}
-          ALIAS_NAME: ${{ secrets.ALIAS_NAME }}
-          ALIAS_PASS: ${{ secrets.ALIAS_PASS }}
         with:
           cmd: ./gradlew cAT  -Ponly_x86_64 --continue
           api: 28
